@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: due-diligent
+Version: 0.1.0
+Summary: Stock screener and filings research assistant
+Requires-Python: >=3.13
+Description-Content-Type: text/markdown
+Requires-Dist: pandas
+Requires-Dist: yfinance
+Requires-Dist: boto3

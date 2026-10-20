@@ -1,0 +1,11 @@
+[project]
+name = "due-diligent"
+version = "0.1.0"
+description = "Stock screener and filings research assistant"
+requires-python = ">=3.13"
+dependencies = ["pandas","yfinance","boto3"]
+readme = "README.md"
+
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
