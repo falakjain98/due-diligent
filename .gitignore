@@ -4,3 +4,5 @@ __pycache__/
 .env
 notebooks/
 main.py
+output/
+sample_data/*_full.csv
