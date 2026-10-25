@@ -35,5 +35,5 @@ LOCAL_INPUT_DIR = "sample_data"
 LOCAL_OUTPUT_DIR = "output"
 
 # run controls
-MAX_TICKERS = None            # e.g. 10 while testing; None = all
+MAX_TICKERS = 10            # e.g. 10 while testing; None = all
 PAUSE_BETWEEN_TICKERS = 0.3   # seconds, so yfinance doesn't throttle you
