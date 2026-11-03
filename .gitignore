@@ -6,3 +6,4 @@ notebooks/
 main.py
 output/
 sample_data/*_full.csv
+*.egg-info
