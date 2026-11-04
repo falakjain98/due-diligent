@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 
-from due_diligent.metrics import pe_ratio, _safe_div, _latest, _period_columns, company_metrics, add_group_average, company_metrics
+from due_diligent.metrics import pe_ratio, _safe_div, _latest, _period_columns, company_metrics, add_group_average
 from due_diligent.data import CompanyData
 
 def test_safe_div():
