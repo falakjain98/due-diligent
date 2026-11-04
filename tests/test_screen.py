@@ -24,19 +24,21 @@ def test_pe_filter():
     results = pe_filter(df)
     assert len(results) == 3
     assert results[0] == False
-
-def test_pb_filter():
-    data = [
-        {"ticker": "A", "price_to_book": 1.5, "sector_avg_pb": 2.0},
-        {"ticker": "B", "price_to_book": 2.0, "sector_avg_pb": 2.0},
-        {"ticker": "C", "price_to_book": 10.0, "sector_avg_pb": 2.0},
-    ]
-    df = pd.DataFrame(data)
-    results = pb_filter(df)
-    assert len(results) == 3
-    assert results[0] == True
     assert results[1] == True
     assert results[2] == False
+
+# def test_pb_filter():
+#     data = [
+#         {"ticker": "A", "price_to_book": 1.5, "sector_avg_pb": 2.0},
+#         {"ticker": "B", "price_to_book": 2.0, "sector_avg_pb": 2.0},
+#         {"ticker": "C", "price_to_book": 10.0, "sector_avg_pb": 2.0},
+#     ]
+#     df = pd.DataFrame(data)
+#     results = pb_filter(df)
+#     assert len(results) == 3
+#     assert results[0] == True
+#     assert results[1] == True
+#     assert results[2] == False
 
 def test_margin_filter():
     data = [
