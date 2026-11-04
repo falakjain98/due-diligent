@@ -23,9 +23,9 @@ def test_pe_filter():
     df = pd.DataFrame(data)
     results = pe_filter(df)
     assert len(results) == 3
-    assert results[0] == False
-    assert results[1] == True
-    assert results[2] == False
+    assert results.iloc[0] == False
+    assert results.iloc[1] == True
+    assert results.iloc[2] == False
 
 # def test_pb_filter():
 #     data = [
@@ -49,9 +49,9 @@ def test_margin_filter():
     df = pd.DataFrame(data)
     results = margin_filter(df)
     assert len(results) == 3
-    assert results[0] == False
-    assert results[1] == True
-    assert results[2] == True
+    assert results.iloc[0] == False
+    assert results.iloc[1] == True
+    assert results.iloc[2] == True
 
 def test_returns_filter():
     data = [
@@ -77,3 +77,9 @@ def test_add_filter_columns():
     assert "pb_filter" in df_with_filters.columns
     assert "margin_filter" in df_with_filters.columns
     assert "returns_filter" in df_with_filters.columns
+
+def test_bucket():
+    values = pd.Series([0.3, 0.15, 0.05, float("nan")])
+    cutoffs = (0.2, 0.1)
+    result = _bucket(values, cutoffs, higher_is_better=True)
+    assert result.tolist() == [1, 2, 3, 3]
