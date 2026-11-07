@@ -42,8 +42,7 @@ def pe_ratio(price: float | None, eps: float | None) -> float | None:
 
 def debt_to_equity(debt: float | None, equity: float | None) -> float | None:
     """Debt-to-equity ratio."""
-    # BUG (issue #1): inverted, should be debt / equity. Fix test-first in week 2.
-    return _safe_div(equity, debt)
+    return _safe_div(debt, equity)
 
 def capex_to_income(capex: float | None, net_income: float | None) -> float | None:
     """Capital expenditure / net income."""

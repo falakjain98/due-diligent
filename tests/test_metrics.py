@@ -68,5 +68,5 @@ def test_company_metrics():
     assert metrics["ticker"] == "TEST"
     assert metrics["pe_ratio"] == 20
     # include after bug fix
-    # assert metrics["debt_to_equity"] == pytest.approx(0.5)
+    assert metrics["debt_to_equity"] == pytest.approx(0.5)
     # assert metrics["capex_to_income"] == pytest.approx(-1)
