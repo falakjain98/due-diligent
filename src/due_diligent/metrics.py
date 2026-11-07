@@ -46,8 +46,7 @@ def debt_to_equity(debt: float | None, equity: float | None) -> float | None:
 
 def capex_to_income(capex: float | None, net_income: float | None) -> float | None:
     """Capital expenditure / net income."""
-    # BUG (issue #2): capex is negative in yfinance. Fix test-first in week 2.
-    return _safe_div(capex, net_income)
+    return _safe_div(abs(capex), net_income)
 
 # --- one company -> one row ------------------------------------------------------
 
