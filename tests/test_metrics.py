@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 
-from due_diligent.metrics import pe_ratio, _safe_div, _latest, _period_columns, company_metrics, add_group_average
+from due_diligent.metrics import pe_ratio, _safe_div, _latest, _period_columns, company_metrics, add_group_average, capex_to_income
 from due_diligent.data import CompanyData
 
 def test_safe_div():
@@ -67,6 +67,12 @@ def test_company_metrics():
     metrics = company_metrics(company)
     assert metrics["ticker"] == "TEST"
     assert metrics["pe_ratio"] == 20
-    # include after bug fix
     assert metrics["debt_to_equity"] == pytest.approx(0.5)
-    # assert metrics["capex_to_income"] == pytest.approx(-1)
+    assert metrics["capex_to_income"] == pytest.approx(1)
+
+@pytest.mark.parametrize("capex, net_income, expected", [
+    (-50, 200, 0.25),   # yfinance style: capex reported as negative
+    (50, 200, 0.25),    # EDGAR style: capex reported as positive
+])
+def test_capex_to_income(capex, net_income, expected):
+    assert capex_to_income(capex, net_income) == pytest.approx(expected)
