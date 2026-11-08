@@ -34,7 +34,7 @@ All settings live in `src/due_diligent/config.py`. Edit them there; no code chan
 **Screening thresholds** are in the same file, grouped by rule:
  
 - **Universe cleanup:** `EXCLUDED_INDUSTRIES`
-- **Filters:** `PE_MIN` / `PE_MAX`, `PB_MAX`, `GROSS_MARGIN_MIN`, `NET_MARGIN_MIN`, `ROA_MIN`, `ROE_MIN`
+- **Filters:** `PE_MIN` / `PE_MAX`, `GROSS_MARGIN_MIN`, `NET_MARGIN_MIN`, `ROA_MIN`, `ROE_MIN`
 - **Rank cutoffs** (rank 1 / rank 2 boundaries): `ROA_RANK_CUTOFFS`, `ROE_RANK_CUTOFFS`, `DEBT_TO_EQUITY_RANK_CUTOFFS`, `CAPEX_TO_INCOME_RANK_CUTOFFS`
 
 S3 mode uses your standard AWS credentials (an instance role on EC2, or `~/.aws/credentials`).

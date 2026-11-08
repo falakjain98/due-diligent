@@ -20,11 +20,6 @@ def pe_filter(df: pd.DataFrame) -> pd.Series:
     """P/E strictly between PE_MIN and PE_MAX (main.py line 36)."""
     return (df["pe_ratio"] > config.PE_MIN) & (df["pe_ratio"] < config.PE_MAX)
 
-def pb_filter(df: pd.DataFrame) -> pd.Series:
-    """P/B under PB_MAX, or under its sector average (main.py line 46)."""
-    # BUG (issue #3): OR lets almost everything pass. Copy as is; decide in week 2.
-    return (df["price_to_book"] < config.PB_MAX) | (df["price_to_book"] < df["sector_avg_pb"])
-
 def margin_filter(df: pd.DataFrame) -> pd.Series:
     """Gross and net margin both above their minimums (main.py line 54)."""
     return (df["gross_margin"] > config.GROSS_MARGIN_MIN) & (df["net_margin"] > config.NET_MARGIN_MIN)
@@ -37,7 +32,6 @@ def add_filter_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Add one True/False column per filter. Does not drop any rows (matches old behavior)."""
     df = df.copy()
     df["pe_filter"] = pe_filter(df)
-    df["pb_filter"] = pb_filter(df)
     df["margin_filter"] = margin_filter(df)
     df["returns_filter"] = returns_filter(df)
     return df

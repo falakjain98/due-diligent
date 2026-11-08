@@ -68,11 +68,3 @@ def company_metrics(company: CompanyData) -> dict:
 def metrics_table(companies: list[CompanyData]) -> pd.DataFrame:
     """One row per company."""
     return pd.DataFrame([company_metrics(c) for c in companies])
-
-# --- needs the whole table ---------------------------------------------------------
-
-def add_group_average(df: pd.DataFrame, value_col: str, group_col: str, new_col: str) -> pd.DataFrame:
-    """Add a column with the average of value_col within each group (e.g. sector P/B)."""
-    df_copy = df.copy()
-    df_copy[new_col] = df_copy.groupby(group_col)[value_col].transform("mean")
-    return df_copy

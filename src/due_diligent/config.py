@@ -12,7 +12,6 @@ EXCLUDED_INDUSTRIES = ["Blank Checks"]
 # filters (main.py lines 36, 46, 54, 62)
 PE_MIN = 0
 PE_MAX = 50
-PB_MAX = 10
 GROSS_MARGIN_MIN = 0.2
 NET_MARGIN_MIN = 0.1
 ROA_MIN = 0.05

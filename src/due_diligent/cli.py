@@ -37,7 +37,6 @@ def run(source: DataSource) -> str:
     if not companies: raise RuntimeError("No companies fetched; check the logs above")
     df = metrics.metrics_table(companies)
     df = universe.merge(df, left_on="Symbol", right_on="ticker").drop(columns="ticker")
-    df = metrics.add_group_average(df, "price_to_book", "Sector", "sector_avg_pb")
     df = screen.add_filter_columns(df)
     df = screen.add_ranks(df)
     run_date = date.today().isoformat()
