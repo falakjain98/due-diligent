@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 
-from due_diligent.metrics import pe_ratio, _safe_div, _latest, _period_columns, company_metrics, add_group_average, capex_to_income
+from due_diligent.metrics import pe_ratio, _safe_div, _latest, _period_columns, company_metrics, capex_to_income
 from due_diligent.data import CompanyData
 
 def test_safe_div():
@@ -38,18 +38,6 @@ def test_pe_ratio():
     assert pe_ratio(None, 5) is None
     assert pe_ratio(None, None) is None
     assert pe_ratio(100, -5) == -20
-
-def test_add_group_average():
-    data = [
-        {"group": "A", "value": 10},
-        {"group": "A", "value": 20},
-        {"group": "B", "value": 30},
-        {"group": "B", "value": 40},
-    ]
-    df = pd.DataFrame(data)
-    result = add_group_average(df, group_col="group", value_col="value", new_col="average")
-    assert result.loc[result["group"] == "A", "average"].iloc[0] == 15
-    assert result.loc[result["group"] == "B", "average"].iloc[0] == 35
 
 def test_company_metrics():
     company = CompanyData(

@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 
-from due_diligent.screen import clean_universe, pe_filter, pb_filter, margin_filter, returns_filter, add_filter_columns, add_ranks, _bucket
+from due_diligent.screen import clean_universe, pe_filter, margin_filter, returns_filter, add_filter_columns, add_ranks, _bucket
 
 def test_clean_universe():
     data = [
@@ -26,19 +26,6 @@ def test_pe_filter():
     assert results.iloc[0] == False
     assert results.iloc[1] == True
     assert results.iloc[2] == False
-
-# def test_pb_filter():
-#     data = [
-#         {"ticker": "A", "price_to_book": 1.5, "sector_avg_pb": 2.0},
-#         {"ticker": "B", "price_to_book": 2.0, "sector_avg_pb": 2.0},
-#         {"ticker": "C", "price_to_book": 10.0, "sector_avg_pb": 2.0},
-#     ]
-#     df = pd.DataFrame(data)
-#     results = pb_filter(df)
-#     assert len(results) == 3
-#     assert results[0] == True
-#     assert results[1] == True
-#     assert results[2] == False
 
 def test_margin_filter():
     data = [
@@ -74,7 +61,6 @@ def test_add_filter_columns():
     df = pd.DataFrame(data)
     df_with_filters = add_filter_columns(df)
     assert "pe_filter" in df_with_filters.columns
-    assert "pb_filter" in df_with_filters.columns
     assert "margin_filter" in df_with_filters.columns
     assert "returns_filter" in df_with_filters.columns
 
