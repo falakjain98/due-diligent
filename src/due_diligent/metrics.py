@@ -46,6 +46,8 @@ def debt_to_equity(debt: float | None, equity: float | None) -> float | None:
 
 def capex_to_income(capex: float | None, net_income: float | None) -> float | None:
     """Capital expenditure / net income."""
+    if capex is None or net_income is None:
+        return None
     return _safe_div(abs(capex), net_income)
 
 # --- one company -> one row ------------------------------------------------------
