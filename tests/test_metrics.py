@@ -61,6 +61,7 @@ def test_company_metrics():
 @pytest.mark.parametrize("capex, net_income, expected", [
     (-50, 200, 0.25),   # yfinance style: capex reported as negative
     (50, 200, 0.25),    # EDGAR style: capex reported as positive
+    (None, 200, None),    # missing capex
 ])
 def test_capex_to_income(capex, net_income, expected):
     assert capex_to_income(capex, net_income) == pytest.approx(expected)

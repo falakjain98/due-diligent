@@ -28,7 +28,7 @@ All settings live in `src/due_diligent/config.py`. Edit them there; no code chan
 | `LOCAL_OUTPUT_DIR` | `"output"` | Folder results are written to in local mode |
 | `TICKERS_FILENAME` | `"sp500_tickers.csv"` | Name of the input ticker file and the output results file |
 | `S3_BUCKET`, `INPUT_PREFIX`, `OUTPUT_PREFIX` | `"fin-fj"`, `"input"`, `"output"` | S3 locations used in S3 mode |
-| `MAX_TICKERS` | `None` | Limit the run to the first N tickers (e.g. `10` while testing); `None` runs all |
+| `MAX_TICKERS` | `10` | Limit the run to the first N tickers (e.g. `10` while testing); `None` runs all |
 | `PAUSE_BETWEEN_TICKERS` | `0.3` | Seconds to wait between tickers so the data source doesn't throttle requests |
  
 **Screening thresholds** are in the same file, grouped by rule:
@@ -70,13 +70,8 @@ due-diligent/
 ## Performance
 ~1.4 s/ticker vs >20 s/ticker
 
-## Known issues
-- [Issue 1: debt_to_equity is inverted](https://github.com/falakjain98/due-diligent/issues/1)
-- [Issue 2: capex_to_income always ranks 1 because capex is negative](https://github.com/falakjain98/due-diligent/issues/2)
-- [Issue 3: P/B filter uses OR, so it barely filters](https://github.com/falakjain98/due-diligent/issues/3)
-
 ## Roadmap
-- **Tests and bug fixes:** pytest coverage for `metrics` and `screen`, with each known bug (#1–#3) fixed test-first, and CI on every push
+- **[Done]** **Tests and bug fixes:** pytest coverage for `metrics` and `screen`, with each known bug (#1–#3) fixed test-first, and CI on every push
 - **API and container:** a FastAPI service (`/tickers/{symbol}`, `/screen`) with Pydantic models and caching, packaged in Docker
 - **Read the filings:** pull 10-Ks from SEC EDGAR and extract structured, validated data with an LLM, checked against XBRL
 - **Ask the filings:** retrieval over 10-K sections with citations, plus an evaluation set to measure answer accuracy
