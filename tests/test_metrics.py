@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 
-from due_diligent.metrics import pe_ratio, _safe_div, _latest, _period_columns, company_metrics, capex_to_income
+from due_diligent.metrics import metrics_table, pe_ratio, _safe_div, _latest, _period_columns, company_metrics, capex_to_income
 from due_diligent.data import CompanyData
 
 def test_safe_div():
@@ -65,3 +65,9 @@ def test_company_metrics():
 ])
 def test_capex_to_income(capex, net_income, expected):
     assert capex_to_income(capex, net_income) == pytest.approx(expected)
+
+def test_metrics_table_all_missing_column_is_numeric():
+    # one company with no EPS: pe_ratio is None for every row
+    df = metrics_table([CompanyData(ticker="X", previous_close=10)])
+    assert df["pe_ratio"].dtype == float
+    assert df["pe_ratio"].isna().all()

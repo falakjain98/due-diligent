@@ -5,7 +5,7 @@ Screens the S&P 500 on fundamentals so you know which companies deserve a closer
 > Research tool only. Nothing here is investment advice.
 
 ## What it does
-The package loads S&P500 tickers along with industry and sector information. After some initial scrubbing, it fetches data for those stickers using the yfinance package. This financial data is used to determine metrics which indicate fundamentals similar to [Warren Buffet and the Interpretation of Finanical Statements](https://www.youtube.com/watch?v=lBBXmim527A&t=685s). Stocks adhering to the thresholds are then screened, ranked and saved to a CSV.
+The package loads S&P500 tickers along with industry and sector information. After some initial scrubbing, it fetches data for those tickers using the yfinance package. This financial data is used to determine metrics which indicate fundamentals similar to [Warren Buffett and the Interpretation of Financial Statements](https://www.youtube.com/watch?v=lBBXmim527A&t=685s). Stocks adhering to the thresholds are then screened, ranked and saved to a CSV.
 
 ## Quickstart
 Run the following commands to get started:
@@ -17,6 +17,45 @@ pip install -e .
 python -m due_diligent.cli
 ```
 The output can then be found in `output/sp500/` within the current_date subdirectory 
+
+## Run the API
+The same screen is available over HTTP through a FastAPI app.
+```
+pip install -e .
+uvicorn due_diligent.api:app --reload --port 8000
+```
+`--reload` restarts the server whenever you save a file; leave it off outside development. Then, from another terminal:
+```
+curl localhost:8000/health
+curl -s localhost:8000/tickers/AAPL | python -m json.tool
+```
+Interactive docs (every endpoint, its parameters and response shape, with a "Try it out" button) are at `http://localhost:8000/docs`. On a remote machine, forward the port first: `ssh -L 8000:localhost:8000 <host>`.
+
+| Endpoint | What it returns |
+|---|---|
+| `GET /health` | `{"status": "ok"}` if the server is up; touches no data |
+| `GET /tickers/{symbol}` | One company scored live: `metrics` (the ratios), `filters` (pass/fail per rule), `ranks` (1 best to 3 worst, plus `final_rank`), and a disclaimer. Case-insensitive symbol |
+
+Status codes: `200` success, `404` unknown ticker (the data source returned no price and no EPS), `502` the data source itself failed (network error or throttling; try again). Missing values come back as `null`, the matching filter fails, and the matching rank is 3.
+
+Example response (numbers illustrative):
+```json
+{
+  "ticker": "AAPL",
+  "metrics": {"pe_ratio": 34.1, "price_to_book": 52.3, "gross_margin": 0.46, "net_margin": 0.24,
+              "return_on_assets": 0.22, "return_on_equity": 1.5, "debt_to_equity": 1.4, "capex_to_income": 0.1},
+  "filters": {"pe_filter": true, "margin_filter": true, "returns_filter": true},
+  "ranks": {"roa_rank": 1, "roe_rank": 1, "debt_to_equity_rank": 2, "capex_to_income_rank": 1, "final_rank": 5},
+  "disclaimer": "Research output from fixed screening rules. Not investment advice."
+}
+```
+
+## Run the tests
+```
+pip install -e ".[dev]"
+pytest -v
+```
+No test touches the network. `tests/test_metrics.py` and `tests/test_screen.py` check each ratio and rule on small hand-made numbers, `tests/test_pipeline.py` runs the whole CLI pipeline on a fake data source and a temporary folder, and `tests/test_api.py` calls the API in-process with FastAPI's `TestClient`, swapping yfinance for a fake source through `app.dependency_overrides`. GitHub Actions runs the same `pytest` on every push and pull request.
 
 ## Configuration
 All settings live in `src/due_diligent/config.py`. Edit them there; no code changes needed.
@@ -52,10 +91,16 @@ due-diligent/
     ├── metrics.py          # pure functions: ratios and per-period values, no network
     ├── screen.py           # universe cleanup, pass/fail filters, ranking
     ├── storage.py          # loads tickers and saves results, locally or on S3
-    └── cli.py              # runs the pipeline end to end: python -m due_diligent.cli
+    ├── cli.py              # runs the pipeline end to end: python -m due_diligent.cli
+    ├── api.py              # FastAPI app: uvicorn due_diligent.api:app
+    └── models.py           # Pydantic response models for the API
+tests/                      # pytest suite, no network needed
+.github/workflows/tests.yml # CI: runs pytest on every push and pull request
 ```
  
-**How data flows:** `storage` → `screen.clean_universe` → `data` → `metrics` → `screen` (filters, ranks) → `storage`
+**How data flows:**
+- CLI: `storage` → `screen.clean_universe` → `data` → `metrics` → `screen.score` (filters, ranks) → `storage`
+- API: request → `data` (one ticker) → `metrics` → `screen.score` → Pydantic model → JSON
 
 ## Design choices
 - **Fetch each ticker once.** `YFinanceSource` creates one `yf.Ticker` per company and reads `.info` and each statement a single time. The original script downloaded the same company about 20 times; see issue #4 for the before/after runtime.
@@ -65,6 +110,7 @@ due-diligent/
 - **Missing data is expected, not fatal.** Banks have no R&D line, and some tickers lack EPS. Missing values become `None` with a logged warning. A ticker that fails to fetch is logged and skipped, so one bad symbol can't stop a 500-ticker run.
 - **Fail loudly where it matters.** S3 errors and an unknown `STORAGE_MODE` raise instead of being swallowed. A run that silently saved nothing is worse than a crash.
 - **Filters are columns, not deletions.** Every stock stays in the output with a True/False column per rule, so you can see *why* a company passed or failed instead of it quietly disappearing.
+- **The API is a thin layer.** `api.py` does no math of its own: it calls the same `metrics` and `screen.score` as the CLI, so a rule changed once changes everywhere. The data source is injected with FastAPI's `Depends`, so tests run the real endpoints against a fake source.
 - **One codebase, local or cloud.** The same pipeline runs from local CSVs (no AWS needed) or from S3, switched by one setting.
 
 ## Performance
@@ -72,7 +118,7 @@ due-diligent/
 
 ## Roadmap
 - **[Done]** **Tests and bug fixes:** pytest coverage for `metrics` and `screen`, with each known bug (#1–#3) fixed test-first, and CI on every push
-- **API and container:** a FastAPI service (`/tickers/{symbol}`, `/screen`) with Pydantic models and caching, packaged in Docker
+- **[In progress]** **API and container:** a FastAPI service (`/tickers/{symbol}`, `/screen`) with Pydantic models and caching, packaged in Docker
 - **Read the filings:** pull 10-Ks from SEC EDGAR and extract structured, validated data with an LLM, checked against XBRL
 - **Ask the filings:** retrieval over 10-K sections with citations, plus an evaluation set to measure answer accuracy
 - **Research analyst agent:** screen, read the filings, and write a cited one-page memo per company, with guardrails against prompt injection and against anything resembling investment advice

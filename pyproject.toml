@@ -3,11 +3,11 @@ name = "due-diligent"
 version = "0.1.0"
 description = "Stock screener and filings research assistant"
 requires-python = ">=3.13"
-dependencies = ["pandas==3.0.6","yfinance==1.7.0","boto3==1.43.115"]
+dependencies = ["pandas==3.0.6","yfinance==1.7.0","boto3==1.43.115","fastapi==0.163.0","uvicorn==0.54.0"]
 readme = "README.md"
 
 [project.optional-dependencies]
-dev = ["pytest==9.2.0"]
+dev = ["pytest==9.2.0","httpx==0.28.1"]
 
 [project.scripts]
 due-diligent = "due_diligent.cli:main"
