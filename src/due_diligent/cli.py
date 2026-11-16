@@ -37,8 +37,7 @@ def run(source: DataSource) -> str:
     if not companies: raise RuntimeError("No companies fetched; check the logs above")
     df = metrics.metrics_table(companies)
     df = universe.merge(df, left_on="Symbol", right_on="ticker").drop(columns="ticker")
-    df = screen.add_filter_columns(df)
-    df = screen.add_ranks(df)
+    df = screen.score(df)
     run_date = date.today().isoformat()
     df["run_date"] = run_date
     return storage.save_results(df, run_date)

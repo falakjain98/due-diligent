@@ -68,5 +68,10 @@ def company_metrics(company: CompanyData) -> dict:
     return {**ratios, **_period_columns(company)}
 
 def metrics_table(companies: list[CompanyData]) -> pd.DataFrame:
-    """One row per company."""
-    return pd.DataFrame([company_metrics(c) for c in companies])
+    """One row per company. Every column except ticker is a float, missing values are NaN."""
+    df = pd.DataFrame([company_metrics(c) for c in companies])
+    # A column where every value is None (one company with no EPS, or a run of only banks)
+    # would otherwise be an "object" column of None, and the filters and ranks would crash on it.
+    numeric = df.columns.drop("ticker")
+    df[numeric] = df[numeric].astype(float)
+    return df

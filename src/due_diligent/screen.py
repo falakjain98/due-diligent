@@ -54,3 +54,9 @@ def add_ranks(df: pd.DataFrame) -> pd.DataFrame:
     df["capex_to_income_rank"] = _bucket(df["capex_to_income"], config.CAPEX_TO_INCOME_RANK_CUTOFFS, higher_is_better=False)
     df["final_rank"] = df[["roa_rank", "roe_rank", "debt_to_equity_rank", "capex_to_income_rank"]].sum(axis=1)
     return df.sort_values("final_rank")
+
+# --- both together: what the CLI and the API call ------------------------------------
+
+def score(df: pd.DataFrame) -> pd.DataFrame:
+    """Filters, then ranks. One place, so the CLI and the API can never disagree."""
+    return add_ranks(add_filter_columns(df))
