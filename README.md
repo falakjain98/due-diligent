@@ -35,8 +35,11 @@ Interactive docs (every endpoint, its parameters and response shape, with a "Try
 |---|---|
 | `GET /health` | `{"status": "ok"}` if the server is up; touches no data |
 | `GET /tickers/{symbol}` | One company scored live: `metrics` (the ratios), `filters` (pass/fail per rule), `ranks` (1 best to 3 worst, plus `final_rank`), and a disclaimer. Case-insensitive symbol |
+| `GET /screen?sector=Technology` | The latest saved run (newest date folder under `output/sp500/`, or the newest S3 prefix in S3 mode), best `final_rank` first, with name, sector and industry per company. `sector` is optional and case-insensitive |
 
-Status codes: `200` success, `404` unknown ticker (the data source returned no price and no EPS), `502` the data source itself failed (network error or throttling; try again). Missing values come back as `null`, the matching filter fails, and the matching rank is 3.
+`/screen` serves results the CLI already saved and never runs the screen itself (a full run takes minutes), so run `python -m due_diligent.cli` at least once first.
+
+Status codes: `200` success (including an empty list for a sector with no companies), `404` unknown ticker or no saved run yet, `502` the data source itself failed (network error or throttling; try again). Missing values come back as `null`, the matching filter fails, and the matching rank is 3.
 
 Example response (numbers illustrative):
 ```json

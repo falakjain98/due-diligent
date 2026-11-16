@@ -50,6 +50,32 @@ def save_results(df: pd.DataFrame, run_date: str) -> str:
         logger.error("Invalid storage mode: %s", config.STORAGE_MODE)
         raise ValueError(f"Unknown STORAGE_MODE: {config.STORAGE_MODE!r}")
 
+def load_latest_results() -> tuple[str, pd.DataFrame] | None:
+    """Return (run_date, results) for the newest saved run, or None if nothing is saved yet.
+
+    Runs are saved under .../sp500/<YYYY-MM-DD>/, and ISO dates sort correctly as text,
+    so the newest run is simply the largest folder name.
+    """
+    if config.STORAGE_MODE == "s3":
+        dates = _s3_run_dates(config.S3_BUCKET, f"{config.OUTPUT_PREFIX}/sp500/")
+        if not dates:
+            return None
+        run_date = max(dates)
+        key = f"{config.OUTPUT_PREFIX}/sp500/{run_date}/{config.TICKERS_FILENAME}"
+        logger.info("Reading latest results from s3://%s/%s", config.S3_BUCKET, key)
+        return run_date, _read_s3_csv(config.S3_BUCKET, key)
+    elif config.STORAGE_MODE == "local":
+        root = Path(config.LOCAL_OUTPUT_DIR) / "sp500"
+        runs = sorted(p for p in root.glob(f"*/{config.TICKERS_FILENAME}")) if root.exists() else []
+        if not runs:
+            return None
+        path = runs[-1]
+        logger.info("Reading latest results from %s", path)
+        return path.parent.name, pd.read_csv(path)
+    else:
+        logger.error("Invalid storage mode: %s", config.STORAGE_MODE)
+        raise ValueError(f"Unknown STORAGE_MODE: {config.STORAGE_MODE!r}")
+
 # --- private: one helper per backend -------------------------------------------------
 
 def _read_s3_csv(bucket: str, key: str) -> pd.DataFrame:
@@ -63,6 +89,19 @@ def _read_s3_csv(bucket: str, key: str) -> pd.DataFrame:
         raise
     df = pd.read_csv(io.StringIO(text))
     return df
+
+def _s3_run_dates(bucket: str, prefix: str) -> list[str]:
+    """Names of the date "folders" directly under prefix (S3 has no real folders, only key prefixes)."""
+    s3_client = boto3.client("s3")
+    dates = []
+    try:
+        for page in s3_client.get_paginator("list_objects_v2").paginate(Bucket=bucket, Prefix=prefix, Delimiter="/"):
+            for common in page.get("CommonPrefixes", []):
+                dates.append(common["Prefix"][len(prefix):].rstrip("/"))
+    except (ClientError, BotoCoreError) as e:
+        logger.error("Error listing s3://%s/%s: %s", bucket, prefix, e)
+        raise
+    return dates
 
 def _write_s3_csv(df: pd.DataFrame, bucket: str, key: str) -> None:
     """Replaces old upload.upload_s3."""

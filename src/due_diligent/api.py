@@ -6,9 +6,9 @@ import logging
 
 from fastapi import Depends, FastAPI, HTTPException
 
-from due_diligent import metrics, screen
 from due_diligent.data import CompanyData, DataSource, YFinanceSource
-from due_diligent.models import TickerScreen
+from due_diligent import metrics, screen, storage
+from due_diligent.models import ScreenResponse, ScreenRow, TickerScreen
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +50,24 @@ def get_ticker(symbol: str, source: DataSource = Depends(get_source)) -> TickerS
     row = json.loads(df.to_json(orient="records"))[0]
     return TickerScreen.from_row(row)
 
+@app.get("/screen")
+def get_screen(sector: str | None = None) -> ScreenResponse:
+    """The latest saved screening run, best final_rank first, optionally for one sector.
+
+    Reads results the CLI already saved; it never runs the screen itself, because a full
+    run takes minutes. No saved run yet is a 404 (there is nothing to serve). A sector with
+    no companies is a 200 with an empty list (the question was fine, the answer is "none").
+    """
+    latest = storage.load_latest_results()
+    if latest is None:
+        raise HTTPException(status_code=404, detail="No saved results yet; run python -m due_diligent.cli first")
+    run_date, df = latest
+    if sector is not None:
+        df = df[df["Sector"].str.lower() == sector.lower()]
+    df = df.sort_values("final_rank", kind="stable")
+    rows = json.loads(df.to_json(orient="records"))
+    results = [ScreenRow.from_row(row) for row in rows]
+    return ScreenResponse(run_date=run_date, sector=sector, count=len(results), results=results)
 
 def _looks_empty(company: CompanyData) -> bool:
     """yfinance returns mostly empty data for a made-up symbol instead of raising."""
