@@ -72,6 +72,7 @@ All settings live in `src/due_diligent/config.py`. Edit them there; no code chan
 | `S3_BUCKET`, `INPUT_PREFIX`, `OUTPUT_PREFIX` | `"fin-fj"`, `"input"`, `"output"` | S3 locations used in S3 mode |
 | `MAX_TICKERS` | `10` | Limit the run to the first N tickers (e.g. `10` while testing); `None` runs all |
 | `PAUSE_BETWEEN_TICKERS` | `0.3` | Seconds to wait between tickers so the data source doesn't throttle requests |
+| `CACHE_TTL_SECONDS` | `3600` | How long the API reuses a fetched company before asking the data source again |
  
 **Screening thresholds** are in the same file, grouped by rule:
  
@@ -96,7 +97,8 @@ due-diligent/
     ├── storage.py          # loads tickers and saves results, locally or on S3
     ├── cli.py              # runs the pipeline end to end: python -m due_diligent.cli
     ├── api.py              # FastAPI app: uvicorn due_diligent.api:app
-    └── models.py           # Pydantic response models for the API
+    ├── models.py           # Pydantic response models for the API
+    └── cache.py            # CachedSource: in-memory cache in front of any DataSource
 tests/                      # pytest suite, no network needed
 .github/workflows/tests.yml # CI: runs pytest on every push and pull request
 ```
@@ -114,10 +116,19 @@ tests/                      # pytest suite, no network needed
 - **Fail loudly where it matters.** S3 errors and an unknown `STORAGE_MODE` raise instead of being swallowed. A run that silently saved nothing is worse than a crash.
 - **Filters are columns, not deletions.** Every stock stays in the output with a True/False column per rule, so you can see *why* a company passed or failed instead of it quietly disappearing.
 - **The API is a thin layer.** `api.py` does no math of its own: it calls the same `metrics` and `screen.score` as the CLI, so a rule changed once changes everywhere. The data source is injected with FastAPI's `Depends`, so tests run the real endpoints against a fake source.
+- **Caching wraps the data source instead of changing it.** `CachedSource` takes any `DataSource` and is one itself, so the API caches yfinance today and could cache EDGAR later with no other change. Entries expire after `CACHE_TTL_SECONDS`, failed fetches are never cached, and the cache lives in memory, so it resets when the server restarts.
 - **One codebase, local or cloud.** The same pipeline runs from local CSVs (no AWS needed) or from S3, switched by one setting.
 
 ## Performance
-~1.4 s/ticker vs >20 s/ticker
+| What | Time |
+|---|---|
+| Original script, per ticker (repeated `.info` calls + sleeps, see issue #4) | >20 s |
+| Rebuilt pipeline, per ticker (fetch once) | ~1.4 s |
+| API `/tickers/{symbol}`, first call (cold, fetches from yfinance) | 1.11 s |
+| API `/tickers/{symbol}`, repeat call, no cache | ~0.34 s |
+| API `/tickers/{symbol}`, repeat call, served from cache | ~0.016 s |
+
+API times measured with `curl -w "%{time_total}"` against a local uvicorn on EC2.
 
 ## Roadmap
 - **[Done]** **Tests and bug fixes:** pytest coverage for `metrics` and `screen`, with each known bug (#1–#3) fixed test-first, and CI on every push
