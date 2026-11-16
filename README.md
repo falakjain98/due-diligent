@@ -53,6 +53,18 @@ Example response (numbers illustrative):
 }
 ```
 
+## Run in Docker
+The API also ships as a container image: `python:3.13-slim` base, dependencies pinned from `pyproject.toml`, running as a non-root user.
+```
+docker build -t due-diligent-api .
+docker run -d --name due-diligent -p 8000:8000 -v "$(pwd)/output:/app/output:ro" due-diligent-api
+curl localhost:8000/health
+```
+- `-p 8000:8000` connects port 8000 on the host to port 8000 in the container.
+- `-v .../output:/app/output:ro` mounts your saved runs (read-only) so `/screen` can serve them. Results and credentials are never baked into the image.
+- S3 mode: add `-e DD_STORAGE=s3` and drop the `-v`. On EC2 the container uses the instance role; if it can't find credentials, the instance metadata hop limit may need to be 2 for containers to reach it.
+- `docker ps` shows `(healthy)` once `/health` answers; `docker logs due-diligent` shows the server logs; `docker rm -f due-diligent` stops and removes it.
+
 ## Run the tests
 ```
 pip install -e ".[dev]"
@@ -100,6 +112,8 @@ due-diligent/
     ├── models.py           # Pydantic response models for the API
     └── cache.py            # CachedSource: in-memory cache in front of any DataSource
 tests/                      # pytest suite, no network needed
+    Dockerfile                  # API image: slim base, pinned deps, non-root user
+    .dockerignore               # keeps .git, tests, output/ etc. out of the image
 .github/workflows/tests.yml # CI: runs pytest on every push and pull request
 ```
  

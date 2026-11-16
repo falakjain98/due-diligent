@@ -1,0 +1,14 @@
+# Keep the build context (and the image) small: only what the Dockerfile copies is needed.
+.git
+.github
+.venv
+**/__pycache__
+**/*.pyc
+*.egg-info
+.pytest_cache
+.env
+output/
+notebooks/
+tests/
+Dockerfile
+.dockerignore
