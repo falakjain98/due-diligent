@@ -6,8 +6,9 @@ import logging
 
 from fastapi import Depends, FastAPI, HTTPException
 
+from due_diligent import config, metrics, screen, storage
+from due_diligent.cache import CachedSource
 from due_diligent.data import CompanyData, DataSource, YFinanceSource
-from due_diligent import metrics, screen, storage
 from due_diligent.models import ScreenResponse, ScreenRow, TickerScreen
 
 logger = logging.getLogger(__name__)
@@ -18,8 +19,7 @@ app = FastAPI(
     version="0.1.0",
 )
 
-_source = YFinanceSource()
-
+_source = CachedSource(YFinanceSource(), ttl_seconds=config.CACHE_TTL_SECONDS)
 
 def get_source() -> DataSource:
     """Which data source the endpoints use. Tests swap this for a fake one."""
