@@ -112,8 +112,8 @@ due-diligent/
     ├── models.py           # Pydantic response models for the API
     └── cache.py            # CachedSource: in-memory cache in front of any DataSource
 tests/                      # pytest suite, no network needed
-    Dockerfile                  # API image: slim base, pinned deps, non-root user
-    .dockerignore               # keeps .git, tests, output/ etc. out of the image
+Dockerfile                  # API image: slim base, pinned deps, non-root user
+.dockerignore               # keeps .git, tests, output/ etc. out of the image
 .github/workflows/tests.yml # CI: runs pytest on every push and pull request
 ```
  
@@ -146,7 +146,7 @@ API times measured with `curl -w "%{time_total}"` against a local uvicorn on EC2
 
 ## Roadmap
 - **[Done]** **Tests and bug fixes:** pytest coverage for `metrics` and `screen`, with each known bug (#1–#3) fixed test-first, and CI on every push
-- **[In progress]** **API and container:** a FastAPI service (`/tickers/{symbol}`, `/screen`) with Pydantic models and caching, packaged in Docker
+- **[Done]** **API and container:** a FastAPI service (`/tickers/{symbol}`, `/screen`) with Pydantic models and caching, packaged in Docker
 - **Read the filings:** pull 10-Ks from SEC EDGAR and extract structured, validated data with an LLM, checked against XBRL
 - **Ask the filings:** retrieval over 10-K sections with citations, plus an evaluation set to measure answer accuracy
 - **Research analyst agent:** screen, read the filings, and write a cited one-page memo per company, with guardrails against prompt injection and against anything resembling investment advice
