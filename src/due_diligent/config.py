@@ -39,3 +39,15 @@ PAUSE_BETWEEN_TICKERS = 0.3   # seconds, so yfinance doesn't throttle you
 
 # API cache: how long a fetched company is reused before asking yfinance again
 CACHE_TTL_SECONDS = 60 * 60   # 1 hour; prices move daily, statements quarterly
+
+# LLM notes (week 4): which model each provider uses, and how much it thinks first
+CLAUDE_MODEL = "claude-opus-5-5"
+CLAUDE_EFFORT = "low"            # low | medium | high | xhigh | max
+OPENAI_MODEL = "gpt-6-luna"
+OPENAI_REASONING_EFFORT = "low"  # set to None if the model rejects a reasoning setting
+
+# Dollars per 1M tokens as (input, output). Copied from each provider's pricing page on 11/24/2026.
+PRICES_PER_MILLION = {
+    "claude-opus-5-5": (4.00, 20.00),
+    "gpt-6-luna": (0.1, 0.2),  # fill in from OpenAI's pricing page
+}

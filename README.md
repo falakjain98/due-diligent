@@ -82,6 +82,7 @@ set -a; source .env; set +a
 - `python scripts/explore_tokens.py AAPL`: counts the tokens in one company's screener result in three formats, with Claude's and OpenAI's tokenizers.
 - `python scripts/hello_llm.py`: the same prompt to Claude and OpenAI, three runs each, with tokens, time and a temperature check. Costs a cent or two.
 - `python scripts/explore_embeddings.py`: embeds six short sentences and prints how similar each pair is. Uses OpenAI embeddings; costs a fraction of a cent.
+- `python scripts/write_note.py AAPL`: writes one 5-sentence note about a ticker's screening result with each provider, and prints tokens, time and the two quick checks. A cent or two per run.
 
 Notes and results: [docs/llm-notes.md](docs/llm-notes.md).
 
@@ -110,26 +111,27 @@ S3 mode uses your standard AWS credentials (an instance role on EC2, or `~/.aws/
 ## Project layout
 ```
 due-diligent/
-├── pyproject.toml          # project metadata and pinned dependencies
+├── pyproject.toml              # project metadata and pinned dependencies
 ├── sample_data/
-│   └── sp500_tickers.csv   # 10-ticker sample for fast local runs
-├── output/                 # local results (git-ignored)
+│   └── sp500_tickers.csv       # 10-ticker sample for fast local runs
+├── output/                     # local results (git-ignored)
 └── src/due_diligent/
-    ├── config.py           # all settings and screening thresholds
-    ├── data.py             # fetches raw company data (DataSource interface + yfinance)
-    ├── metrics.py          # pure functions: ratios and per-period values, no network
-    ├── screen.py           # universe cleanup, pass/fail filters, ranking
-    ├── storage.py          # loads tickers and saves results, locally or on S3
-    ├── cli.py              # runs the pipeline end to end: python -m due_diligent.cli
-    ├── api.py              # FastAPI app: uvicorn due_diligent.api:app
-    ├── models.py           # Pydantic response models for the API
-    └── cache.py            # CachedSource: in-memory cache in front of any DataSource
-docs/                       # notes and write-ups (LLM fundamentals; later the design doc)
-scripts/                    # one-off experiments, not part of the package
-tests/                      # pytest suite, no network needed
-Dockerfile                  # API image: slim base, pinned deps, non-root user
-.dockerignore               # keeps .git, tests, output/ etc. out of the image
-.github/workflows/tests.yml # CI: runs pytest on every push and pull request
+    ├── config.py               # all settings and screening thresholds
+    ├── data.py                 # fetches raw company data (DataSource interface + yfinance)
+    ├── metrics.py              # pure functions: ratios and per-period values, no network
+    ├── screen.py               # universe cleanup, pass/fail filters, ranking
+    ├── storage.py              # loads tickers and saves results, locally or on S3
+    ├── cli.py                  # runs the pipeline end to end: python -m due_diligent.cli
+    ├── api.py                  # FastAPI app: uvicorn due_diligent.api:app
+    ├── models.py               # Pydantic response models for the API
+    ├── cache.py                # CachedSource: in-memory cache in front of any DataSource
+    └── notes.py                # LLM note writer: same prompt, Claude or OpenAI (week 4 experiment)
+├── docs/                       # notes and write-ups (LLM fundamentals; later the design doc)
+├── scripts/                    # one-off experiments, not part of the package
+├── tests/                      # pytest suite, no network needed
+├── Dockerfile                  # API image: slim base, pinned deps, non-root user
+├── .dockerignore               # keeps .git, tests, output/ etc. out of the image
+└── .github/workflows/tests.yml # CI: runs pytest on every push and pull request
 ```
  
 **How data flows:**
