@@ -72,6 +72,19 @@ pytest -v
 ```
 No test touches the network. `tests/test_metrics.py` and `tests/test_screen.py` check each ratio and rule on small hand-made numbers, `tests/test_pipeline.py` runs the whole CLI pipeline on a fake data source and a temporary folder, and `tests/test_api.py` calls the API in-process with FastAPI's `TestClient`, swapping yfinance for a fake source through `app.dependency_overrides`. GitHub Actions runs the same `pytest` on every push and pull request.
 
+## Try the experiments
+Week 4 experiments live in `scripts/`. They need the optional LLM libraries and your own API keys:
+```
+pip install -e ".[llm]"
+# .env (git-ignored) holds ANTHROPIC_API_KEY=... and OPENAI_API_KEY=...
+set -a; source .env; set +a
+```
+- `python scripts/explore_tokens.py AAPL`: counts the tokens in one company's screener result in three formats, with Claude's and OpenAI's tokenizers.
+- `python scripts/hello_llm.py`: the same prompt to Claude and OpenAI, three runs each, with tokens, time and a temperature check. Costs a cent or two.
+- `python scripts/explore_embeddings.py`: embeds six short sentences and prints how similar each pair is. Uses OpenAI embeddings; costs a fraction of a cent.
+
+Notes and results: [docs/llm-notes.md](docs/llm-notes.md).
+
 ## Configuration
 All settings live in `src/due_diligent/config.py`. Edit them there; no code changes needed.
  
@@ -111,6 +124,8 @@ due-diligent/
     ├── api.py              # FastAPI app: uvicorn due_diligent.api:app
     ├── models.py           # Pydantic response models for the API
     └── cache.py            # CachedSource: in-memory cache in front of any DataSource
+docs/                       # notes and write-ups (LLM fundamentals; later the design doc)
+scripts/                    # one-off experiments, not part of the package
 tests/                      # pytest suite, no network needed
 Dockerfile                  # API image: slim base, pinned deps, non-root user
 .dockerignore               # keeps .git, tests, output/ etc. out of the image
