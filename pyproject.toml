@@ -8,6 +8,7 @@ readme = "README.md"
 
 [project.optional-dependencies]
 dev = ["pytest==9.2.0","httpx==0.28.1"]
+llm = ["anthropic==2.13.0","tiktoken==0.14.0","openai==3.58.0"]
 
 [project.scripts]
 due-diligent = "due_diligent.cli:main"
