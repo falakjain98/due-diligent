@@ -49,5 +49,5 @@ OPENAI_REASONING_EFFORT = "low"  # set to None if the model rejects a reasoning 
 # Dollars per 1M tokens as (input, output). Copied from each provider's pricing page on 11/24/2026.
 PRICES_PER_MILLION = {
     "claude-opus-5-5": (4.00, 20.00),
-    "gpt-6-luna": (0.1, 0.2),  # fill in from OpenAI's pricing page
+    "gpt-6-luna": (0.1, 0.2),
 }
