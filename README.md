@@ -72,6 +72,22 @@ pytest -v
 ```
 No test touches the network. `tests/test_metrics.py` and `tests/test_screen.py` check each ratio and rule on small hand-made numbers, `tests/test_pipeline.py` runs the whole CLI pipeline on a fake data source and a temporary folder, and `tests/test_api.py` calls the API in-process with FastAPI's `TestClient`, swapping yfinance for a fake source through `app.dependency_overrides`. GitHub Actions runs the same `pytest` on every push and pull request.
 
+## Try the experiments
+Week 4 experiments live in `scripts/`. They need the optional LLM libraries and your own API keys:
+```
+pip install -e ".[llm]"
+# .env (git-ignored) holds ANTHROPIC_API_KEY=... and OPENAI_API_KEY=...
+set -a; source .env; set +a
+```
+- `python scripts/explore_tokens.py AAPL`: counts the tokens in one company's screener result in three formats, with Claude's and OpenAI's tokenizers.
+- `python scripts/hello_llm.py`: the same prompt to Claude and OpenAI, three runs each, with tokens, time and a temperature check. Costs a cent or two.
+- `python scripts/explore_embeddings.py`: embeds six short sentences and prints how similar each pair is. Uses OpenAI embeddings; costs a fraction of a cent.
+- `python scripts/write_note.py AAPL`: writes one 5-sentence note about a ticker's screening result with each provider, and prints tokens, time and the two quick checks. A cent or two per run.
+- `python scripts/compare_providers.py`: writes notes for the 10 sample tickers with both providers, runs the automatic checks, and saves a blind grading sheet to `output/notes/<date>/`. About $0.15 per run.
+- `python scripts/summarize_comparison.py output/notes/<date>`: after you've filled in the grades, joins them with the notes and prints the comparison table.
+
+Notes and results: [docs/llm-notes.md](docs/llm-notes.md) (LLM fundamentals) and [docs/provider-comparison.md](docs/provider-comparison.md) (Claude vs OpenAI on screening notes).
+
 ## Configuration
 All settings live in `src/due_diligent/config.py`. Edit them there; no code changes needed.
  
@@ -97,24 +113,27 @@ S3 mode uses your standard AWS credentials (an instance role on EC2, or `~/.aws/
 ## Project layout
 ```
 due-diligent/
-├── pyproject.toml          # project metadata and pinned dependencies
+├── pyproject.toml              # project metadata and pinned dependencies
 ├── sample_data/
-│   └── sp500_tickers.csv   # 10-ticker sample for fast local runs
-├── output/                 # local results (git-ignored)
-└── src/due_diligent/
-    ├── config.py           # all settings and screening thresholds
-    ├── data.py             # fetches raw company data (DataSource interface + yfinance)
-    ├── metrics.py          # pure functions: ratios and per-period values, no network
-    ├── screen.py           # universe cleanup, pass/fail filters, ranking
-    ├── storage.py          # loads tickers and saves results, locally or on S3
-    ├── cli.py              # runs the pipeline end to end: python -m due_diligent.cli
-    ├── api.py              # FastAPI app: uvicorn due_diligent.api:app
-    ├── models.py           # Pydantic response models for the API
-    └── cache.py            # CachedSource: in-memory cache in front of any DataSource
-tests/                      # pytest suite, no network needed
-Dockerfile                  # API image: slim base, pinned deps, non-root user
-.dockerignore               # keeps .git, tests, output/ etc. out of the image
-.github/workflows/tests.yml # CI: runs pytest on every push and pull request
+│   └── sp500_tickers.csv       # 10-ticker sample for fast local runs
+├── output/                     # local results (git-ignored)
+├── src/due_diligent/
+│   ├── config.py               # all settings and screening thresholds
+│   ├── data.py                 # fetches raw company data (DataSource interface + yfinance)
+│   ├── metrics.py              # pure functions: ratios and per-period values, no network
+│   ├── screen.py               # universe cleanup, pass/fail filters, ranking
+│   ├── storage.py              # loads tickers and saves results, locally or on S3
+│   ├── cli.py                  # runs the pipeline end to end: python -m due_diligent.cli
+│   ├── api.py                  # FastAPI app: uvicorn due_diligent.api:app
+│   ├── models.py               # Pydantic response models for the API
+│   ├── cache.py                # CachedSource: in-memory cache in front of any DataSource
+│   └── notes.py                # LLM note writer: same prompt, Claude or OpenAI (week 4 experiment)
+├── docs/                       # notes and write-ups (LLM fundamentals; later the design doc)
+├── scripts/                    # one-off experiments, not part of the package
+├── tests/                      # pytest suite, no network needed
+├── Dockerfile                  # API image: slim base, pinned deps, non-root user
+├── .dockerignore               # keeps .git, tests, output/ etc. out of the image
+└── .github/workflows/tests.yml # CI: runs pytest on every push and pull request
 ```
  
 **How data flows:**
@@ -147,6 +166,7 @@ API times measured with `curl -w "%{time_total}"` against a local uvicorn on EC2
 ## Roadmap
 - **[Done]** **Tests and bug fixes:** pytest coverage for `metrics` and `screen`, with each known bug (#1–#3) fixed test-first, and CI on every push
 - **[Done]** **API and container:** a FastAPI service (`/tickers/{symbol}`, `/screen`) with Pydantic models and caching, packaged in Docker
+- **[Done]** **LLM fundamentals:** a provider-neutral note writer (Claude or OpenAI) and a blind two-provider comparison on cost, speed and quality ([results](docs/provider-comparison.md))
 - **Read the filings:** pull 10-Ks from SEC EDGAR and extract structured, validated data with an LLM, checked against XBRL
 - **Ask the filings:** retrieval over 10-K sections with citations, plus an evaluation set to measure answer accuracy
 - **Research analyst agent:** screen, read the filings, and write a cited one-page memo per company, with guardrails against prompt injection and against anything resembling investment advice
