@@ -46,7 +46,7 @@ CLAUDE_EFFORT = "low"            # low | medium | high | xhigh | max
 OPENAI_MODEL = "gpt-6-luna"
 OPENAI_REASONING_EFFORT = "low"  # set to None if the model rejects a reasoning setting
 
-# Dollars per 1M tokens as (input, output). Copied from each provider's pricing page on 11/24/2026.
+# Dollars per 1M tokens as (input, output). Copied from each provider's pricing page on 11/25/2026.
 PRICES_PER_MILLION = {
     "claude-opus-5-5": (4.00, 20.00),
     "gpt-6-luna": (0.1, 0.2),

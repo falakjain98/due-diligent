@@ -55,10 +55,13 @@ Working notes from week 4 of building due-diligent. Experiments are in `scripts/
 - What I learned:
   - The 3 answers per provider were the same idea in different words; so one run
     isn't enough to judge a prompt, and evals need several runs.
-  - Hidden thinking is billed as output. Claude wrote ~65 words (~85 tokens) but billed 135 output tokens,
-    so ~50 were thinking at effort low. OpenAI wrote ~40 words (~55 tokens) but billed 85, so ~30 were
-    reasoning: so much of what I paid for was text I never saw.
+  - Hidden thinking is billed as output. Claude wrote ~65 words (~85 tokens) but billed 135 output tokens, so ~50 were thinking at effort low. OpenAI wrote ~40 words (~55 tokens) but billed 85, so ~30 were reasoning: so much of what I paid for was text I never saw.
   - The same prompt was 35 input tokens at Claude and 24 at OpenAI: different tokenizers (plus a few tokens
     of message wrapping).
-  - Claude Opus 5.5 rejects temperature; gpt-6-luna accepted it. Newer models are steered with the prompt
-    and effort instead.
+  - Claude Opus 5.5 rejects temperature; gpt-6-luna accepted it. Newer models are steered with the prompt and effort instead.
+
+## What surprised me
+- 30-40% of the total output tokens were thinking tokens.
+- that the newest models refuse temperature and take effort as an input to guide models.
+- one model turned out to be 140x more expensive that the other but both models performed similarly for this use case.
+- that both models followed "use only numbers from the input" so well; the hard part was clarity where the responses just seemed like a laundry list rather than well-explained and articulated financial metrics.

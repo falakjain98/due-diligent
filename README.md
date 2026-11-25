@@ -83,8 +83,10 @@ set -a; source .env; set +a
 - `python scripts/hello_llm.py`: the same prompt to Claude and OpenAI, three runs each, with tokens, time and a temperature check. Costs a cent or two.
 - `python scripts/explore_embeddings.py`: embeds six short sentences and prints how similar each pair is. Uses OpenAI embeddings; costs a fraction of a cent.
 - `python scripts/write_note.py AAPL`: writes one 5-sentence note about a ticker's screening result with each provider, and prints tokens, time and the two quick checks. A cent or two per run.
+- `python scripts/compare_providers.py`: writes notes for the 10 sample tickers with both providers, runs the automatic checks, and saves a blind grading sheet to `output/notes/<date>/`. About $0.15 per run.
+- `python scripts/summarize_comparison.py output/notes/<date>`: after you've filled in the grades, joins them with the notes and prints the comparison table.
 
-Notes and results: [docs/llm-notes.md](docs/llm-notes.md).
+Notes and results: [docs/llm-notes.md](docs/llm-notes.md) (LLM fundamentals) and [docs/provider-comparison.md](docs/provider-comparison.md) (Claude vs OpenAI on screening notes).
 
 ## Configuration
 All settings live in `src/due_diligent/config.py`. Edit them there; no code changes needed.
@@ -115,17 +117,17 @@ due-diligent/
 ├── sample_data/
 │   └── sp500_tickers.csv       # 10-ticker sample for fast local runs
 ├── output/                     # local results (git-ignored)
-└── src/due_diligent/
-    ├── config.py               # all settings and screening thresholds
-    ├── data.py                 # fetches raw company data (DataSource interface + yfinance)
-    ├── metrics.py              # pure functions: ratios and per-period values, no network
-    ├── screen.py               # universe cleanup, pass/fail filters, ranking
-    ├── storage.py              # loads tickers and saves results, locally or on S3
-    ├── cli.py                  # runs the pipeline end to end: python -m due_diligent.cli
-    ├── api.py                  # FastAPI app: uvicorn due_diligent.api:app
-    ├── models.py               # Pydantic response models for the API
-    ├── cache.py                # CachedSource: in-memory cache in front of any DataSource
-    └── notes.py                # LLM note writer: same prompt, Claude or OpenAI (week 4 experiment)
+├── src/due_diligent/
+│   ├── config.py               # all settings and screening thresholds
+│   ├── data.py                 # fetches raw company data (DataSource interface + yfinance)
+│   ├── metrics.py              # pure functions: ratios and per-period values, no network
+│   ├── screen.py               # universe cleanup, pass/fail filters, ranking
+│   ├── storage.py              # loads tickers and saves results, locally or on S3
+│   ├── cli.py                  # runs the pipeline end to end: python -m due_diligent.cli
+│   ├── api.py                  # FastAPI app: uvicorn due_diligent.api:app
+│   ├── models.py               # Pydantic response models for the API
+│   ├── cache.py                # CachedSource: in-memory cache in front of any DataSource
+│   └── notes.py                # LLM note writer: same prompt, Claude or OpenAI (week 4 experiment)
 ├── docs/                       # notes and write-ups (LLM fundamentals; later the design doc)
 ├── scripts/                    # one-off experiments, not part of the package
 ├── tests/                      # pytest suite, no network needed
@@ -164,6 +166,7 @@ API times measured with `curl -w "%{time_total}"` against a local uvicorn on EC2
 ## Roadmap
 - **[Done]** **Tests and bug fixes:** pytest coverage for `metrics` and `screen`, with each known bug (#1–#3) fixed test-first, and CI on every push
 - **[Done]** **API and container:** a FastAPI service (`/tickers/{symbol}`, `/screen`) with Pydantic models and caching, packaged in Docker
+- **[Done]** **LLM fundamentals:** a provider-neutral note writer (Claude or OpenAI) and a blind two-provider comparison on cost, speed and quality ([results](docs/provider-comparison.md))
 - **Read the filings:** pull 10-Ks from SEC EDGAR and extract structured, validated data with an LLM, checked against XBRL
 - **Ask the filings:** retrieval over 10-K sections with citations, plus an evaluation set to measure answer accuracy
 - **Research analyst agent:** screen, read the filings, and write a cited one-page memo per company, with guardrails against prompt injection and against anything resembling investment advice
