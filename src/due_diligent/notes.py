@@ -169,7 +169,7 @@ class OpenAIWriter:
         )
 
 
-# --- quick automatic checks (Session 4 uses these) ---------------------------------
+# --- quick automatic checks ---------------------------------
 
 ADVICE_TERMS = [
     "buy", "sell", "hold", "recommend", "recommendation", "undervalued", "overvalued",
@@ -185,3 +185,37 @@ def sentence_count(text: str) -> int:
 def advice_terms(text: str) -> list[str]:
     """Advice-sounding words found in the text, as whole words ('threshold' doesn't match 'hold')."""
     return sorted(term for term in ADVICE_TERMS if re.search(rf"\b{re.escape(term)}\b", text, re.IGNORECASE))
+
+# Any number written with digits: 38.87, 48.8 (from "48.8%"), 4, 142.3. Signs are ignored.
+_NUMBER = re.compile(r"\d+(?:\.\d+)?")
+
+def _numbers_in(value: Any) -> set[float]:
+    """Every number inside nested dicts/lists (True/False don't count as numbers)."""
+    if isinstance(value, bool) or value is None:
+        return set()
+    if isinstance(value, (int, float)):
+        return {abs(float(value))}
+    if isinstance(value, dict):
+        return set().union(*(_numbers_in(item) for item in value.values()))
+    if isinstance(value, list):
+        return set().union(*(_numbers_in(item) for item in value))
+    return set()
+
+def made_up_numbers(text: str, screen: TickerScreen) -> list[str]:
+    """Numbers in the note that appear neither in the model's input nor in the system prompt.
+
+    An empty list is what we want. A hit isn't always a mistake (a year, "two filters"
+    written as "2"), so look at each one before counting it as invented.
+    """
+    allowed = _numbers_in(prompt_input(screen)) | {float(n) for n in _NUMBER.findall(SYSTEM_PROMPT)}
+    return [n for n in _NUMBER.findall(text) if float(n) not in allowed]
+
+def note_cost(note: Note) -> float | None:
+    """Dollars this note cost, from the token counts and config.PRICES_PER_MILLION.
+
+    None when the model has no price in config yet, so a missing price can't pass as $0.
+    """
+    input_price, output_price = config.PRICES_PER_MILLION.get(note.model, (None, None))
+    if input_price is None or output_price is None:
+        return None
+    return (note.input_tokens * input_price + note.output_tokens * output_price) / 1_000_000

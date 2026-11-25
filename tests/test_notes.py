@@ -6,8 +6,8 @@ import pytest
 from due_diligent import config
 from due_diligent.models import TickerScreen
 from due_diligent.notes import (
-    PROMPT_VERSION, SYSTEM_PROMPT, ClaudeWriter, NoteError, OpenAIWriter,
-    advice_terms, prompt_input, sentence_count, user_message,
+    PROMPT_VERSION, SYSTEM_PROMPT, ClaudeWriter, Note, NoteError, OpenAIWriter,
+    advice_terms, made_up_numbers, note_cost, prompt_input, sentence_count, user_message,
 )
 
 ROW = {
@@ -141,3 +141,32 @@ def test_sentence_count(text, expected):
 def test_advice_terms_finds_whole_words_only():
     assert advice_terms("Investors may want to BUY it; it looks undervalued.") == ["buy", "undervalued"]
     assert advice_terms("It passes the threshold and sells phones.") == []
+
+
+# --- made-up numbers and cost -------------------------------------------------------------
+
+def test_made_up_numbers_accepts_numbers_from_the_input_and_the_rules():
+    text = "P/E is 20.12, below the limit of 50. Gross margin is 46.2% and the final rank is 6."
+    assert made_up_numbers(text, SCREEN) == []
+
+
+def test_made_up_numbers_flags_numbers_the_model_invented_or_recomputed():
+    text = "Gross margin is 46.23% and P/E is 20.1, up 15% since 2024."
+    assert made_up_numbers(text, SCREEN) == ["46.23", "20.1", "15", "2024"]
+
+
+def _note(model, input_tokens=1_000, output_tokens=500):
+    return Note(ticker="GOOD", provider="x", model=model, prompt_version="v1", text="t",
+                input_tokens=input_tokens, output_tokens=output_tokens, latency_s=1.0)
+
+
+def test_note_cost_uses_prices_from_config(monkeypatch):
+    monkeypatch.setitem(config.PRICES_PER_MILLION, "model-a", (4.0, 20.0))
+    # 1,000 x $4/M + 500 x $20/M = $0.004 + $0.010
+    assert note_cost(_note("model-a")) == pytest.approx(0.014)
+
+
+def test_note_cost_is_none_without_a_price(monkeypatch):
+    monkeypatch.setitem(config.PRICES_PER_MILLION, "model-b", (None, None))
+    assert note_cost(_note("model-b")) is None
+    assert note_cost(_note("never-heard-of-it")) is None
