@@ -51,3 +51,11 @@ PRICES_PER_MILLION = {
     "claude-opus-5-5": (4.00, 20.00),
     "gpt-6-luna": (0.1, 0.2),
 }
+
+EDGAR_CACHE_DIR = "data/edgar"   # git-ignored; every download is kept so reruns don't ask SEC again
+EDGAR_PAUSE_SECONDS = 0.2        # wait before each real request: at most 5 a second (SEC's limit is 10)
+
+# 10-K extraction: provider comparison picked the OpenAI model for cost
+EXTRACT_MODEL = OPENAI_MODEL
+EXTRACT_REASONING_EFFORT = "low"  # try "medium" only if the match rate is poor
+XBRL_TOLERANCE = 0.01             # within 1% counts as a match (filings round to millions)
