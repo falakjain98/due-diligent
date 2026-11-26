@@ -161,7 +161,9 @@ due-diligent/
 **How data flows:**
 - CLI: `storage` → `screen.clean_universe` → `data` → `metrics` → `screen.score` (filters, ranks) → `storage`
 - API: request → `data` (one ticker) → `metrics` → `screen.score` → Pydantic model → JSON
-## Design choices
+
+## Design choices:
+- For the reasoning behind these choices, alternatives considered and known limitations, see [docs/design.md](docs/design.md).
 - **Fetch each ticker once.** `YFinanceSource` creates one `yf.Ticker` per company and reads `.info` and each statement a single time. The original script downloaded the same company about 20 times; see issue #4 for the before/after runtime.
 - **A `DataSource` interface between fetching and everything else.** The pipeline only depends on `get_company(ticker) -> CompanyData`, not on yfinance. That means the source can be swapped (SEC EDGAR is next) without touching the screening code, and tests can pass in a fake source with fixed numbers and no network.
 - **Pure functions for the math and the rules.** `metrics.py` and `screen.py` never touch the network or the disk. They take numbers or DataFrames and return new ones, which makes every ratio and every rule testable in isolation.
