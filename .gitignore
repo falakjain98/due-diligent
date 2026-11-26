@@ -9,3 +9,4 @@ sample_data/*_full.csv
 *.egg-info
 .env
 data/
+scratch/
