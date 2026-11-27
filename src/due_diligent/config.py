@@ -59,3 +59,8 @@ EDGAR_PAUSE_SECONDS = 0.2        # wait before each real request: at most 5 a se
 EXTRACT_MODEL = OPENAI_MODEL
 EXTRACT_REASONING_EFFORT = "low"  # try "medium" only if the match rate is poor
 XBRL_TOLERANCE = 0.01             # within 1% counts as a match (filings round to millions)
+
+# Tool-calling assistant (week 6): same model as extraction, for the same cost reason
+ASSISTANT_MODEL = OPENAI_MODEL
+ASSISTANT_REASONING_EFFORT = "low"
+ASSISTANT_MAX_ROUNDS = 5   # model calls per question; stops a confused model from looping forever
