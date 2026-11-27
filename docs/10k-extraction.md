@@ -99,7 +99,6 @@ From the first run (Session 3); prompt v1, 38,616 input and 695 output tokens, $
 ```
 
 ## Limits
-## Limits
 - 10 companies, one run each. AAPL's debt changed between two runs, so results can vary from run to run.
 - "Total debt" uses our own definition (carrying amount of long-term debt + commercial paper or short-term borrowings); companies' own totals differ, notably principal vs carrying amount.
 - XBRL can't check segments, risks or guidance; those were checked by eye on AAPL only.

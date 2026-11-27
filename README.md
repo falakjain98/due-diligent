@@ -100,7 +100,17 @@ python scripts/extract_10ks.py       # extract + check; writes output/extraction
 - Only Items 1, 1A, 7 and 8 are sent to the model (plus Item 15 when Item 8 only points to it).
 - Extractions are reused on a rerun the same day; `--fresh` pays for new ones. A full run of 10 filings costs about 7 cents with gpt-6-luna.
 **Result:** 44 of 49 checked fields matched XBRL (90%). Revenue, net income and fiscal year matched on all 10 companies; total debt on 4 of 9. Details and every miss: [docs/10k-extraction.md](docs/10k-extraction.md).
- 
+
+## Ask questions (tool calling)
+An LLM answers questions about the screen by calling three tools (`get_metrics`, `run_screen`, `compare`) instead of guessing numbers. Run the screen once first, because `run_screen` reads the latest saved run.
+```
+pip install -e ".[llm]"
+python -m due_diligent.cli
+python scripts/ask.py "Which profitable tech stocks have debt-to-equity under 1?"
+python scripts/eval_assistant.py     # the fixed 13-question set
+```
+Results and how it works: [docs/tool-calling.md](docs/tool-calling.md).
+
 ## Configuration
 All settings live in `src/due_diligent/config.py`. Edit them there; no code changes needed.
  
@@ -149,7 +159,9 @@ due-diligent/
 │   ├── edgar.py                # SEC EDGAR client: User-Agent, rate-limit pause, disk cache
 │   ├── filings.py              # 10-K HTML to text, split at "Item N." headings
 │   ├── extract.py              # LLM extraction into a Pydantic schema, plus grounding checks
-│   └── xbrl.py                 # checks extracted numbers against XBRL company facts
+│   ├── xbrl.py                 # checks extracted numbers against XBRL company facts
+│   ├── tools.py                # the screener as LLM tools: validated inputs, JSON outputs
+│   └── assistant.py            # tool-calling loop (OpenAI) with a round limit and grounding check
 ├── docs/                       # notes and write-ups (LLM fundamentals, provider comparison, 10-K extraction)
 ├── scripts/                    # one-off experiments, not part of the package
 ├── tests/                      # pytest suite, no network needed
@@ -192,6 +204,7 @@ API times measured with `curl -w "%{time_total}"` against a local uvicorn on EC2
 - **[Done]** **API and container:** a FastAPI service (`/tickers/{symbol}`, `/screen`) with Pydantic models and caching, packaged in Docker
 - **[Done]** **LLM fundamentals:** a provider-neutral note writer (Claude or OpenAI) and a blind two-provider comparison on cost, speed and quality ([results](docs/provider-comparison.md))
 - **[Done]** **Read the filings:** pull 10-Ks from SEC EDGAR and extract structured, validated data with an LLM, checked against XBRL ([results](docs/10k-extraction.md))
+- **[Done]** **Tool calling:** the screener as three validated, read-only LLM tools, with a 13-question graded run ([results](docs/tool-calling.md))
 - **Ask the filings:** retrieval over 10-K sections with citations, plus an evaluation set to measure answer accuracy
 - **Research analyst agent:** screen, read the filings, and write a cited one-page memo per company, with guardrails against prompt injection and against anything resembling investment advice
 - **Deploy:** cloud deployment with tracing of every LLM call (cost, latency, tokens)
