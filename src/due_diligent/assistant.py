@@ -20,7 +20,7 @@ from due_diligent.models import DISCLAIMER
 from due_diligent.tools import call_tool, openai_tools
 
 # Bump whenever SYSTEM_PROMPT or a tool description changes, so old and new eval runs stay comparable.
-PROMPT_VERSION = "v1"
+PROMPT_VERSION = "v2"
 
 SYSTEM_PROMPT = f"""You answer questions about a stock fundamentals screener, using its tools.
 

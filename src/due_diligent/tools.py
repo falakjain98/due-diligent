@@ -181,15 +181,17 @@ class Tool:
 
 TOOLS = {tool.name: tool for tool in [
     Tool("get_metrics",
-         "Look up one company's live screening result: P/E, margins, returns, debt-to-equity, "
-         "capex-to-income, which filters it passes, and its ranks. Use for any question about one company.",
+         "Look up ONE company's live screening result: P/E, margins, returns, debt-to-equity, "
+         "capex-to-income, which filters it passes, and its ranks. Use only when the question is about "
+         "a single company. For two or more companies, use compare.",
          GetMetricsInput, get_metrics),
     Tool("run_screen",
          "Filter the latest saved screening run by sector and thresholds, best final rank first. "
          "Use for 'which companies...' questions. Covers only the companies in that saved run.",
          RunScreenInput, run_screen),
     Tool("compare",
-         "Look up 2 to 5 companies' live screening results side by side. Use to compare companies.",
+         "Look up 2 to 5 companies' live screening results side by side in one call. "
+         "Use this whenever the question names more than one company.",
          CompareInput, compare),
 ]}
 
